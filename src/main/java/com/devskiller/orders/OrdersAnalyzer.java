@@ -2,10 +2,11 @@ package com.devskiller.orders;
 
 import com.devskiller.orders.model.Customer;
 import com.devskiller.orders.model.Order;
+import com.devskiller.orders.model.OrderLine;
 import com.devskiller.orders.model.Product;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class OrdersAnalyzer {
@@ -19,8 +20,11 @@ public class OrdersAnalyzer {
      * @return list with up to three most popular products
      */
     public List<Product> findThreeMostPopularProducts(Stream<Order> orders) {
-        // TODO: Implement this method
-        return null;
+        return orders.flatMap(o -> o.getOrderLines().stream())
+                .sorted(Comparator.comparing(OrderLine::getQuantity))
+                .map(OrderLine::getProduct)
+                .limit(3)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -31,8 +35,9 @@ public class OrdersAnalyzer {
      * @return Optional of most valuable customer
      */
     public Optional<Customer> findMostValuableCustomer(Stream<Order> orders) {
-        // TODO: Implement this method
-        return null;
+        return orders.collect(Collectors.toMap(Order::getCustomer,
+                order -> order.getOrderLines().stream().map(OrderLine::getProduct).mapToDouble(p -> p.getPrice().doubleValue()).sum(),
+                Double::sum)).entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByValue())).map(Map.Entry::getKey).findFirst();
     }
 
 }
